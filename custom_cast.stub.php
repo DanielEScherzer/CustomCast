@@ -7,6 +7,7 @@
 
 enum CastableTarget {
     case CAST_BOOL;
+    case CAST_FLOAT;
     case CAST_LONG;
 }
 

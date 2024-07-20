@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 62a44159e5f7da869b96ff6d12ec5cac53c79bbc */
+ * Stub hash: a32b0fd4c5dbe27e57910bd2a25c6005daed9b4c */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_HasCustomCast___doCast, 0, 0, 1)
 	ZEND_ARG_OBJ_INFO(0, t, CastableTarget, 0)
@@ -33,6 +33,8 @@ static zend_class_entry *register_class_CastableTarget(void)
 	zend_class_entry *class_entry = zend_register_internal_enum("CastableTarget", IS_UNDEF, class_CastableTarget_methods);
 
 	zend_enum_add_case_cstr(class_entry, "CAST_BOOL", NULL);
+
+	zend_enum_add_case_cstr(class_entry, "CAST_FLOAT", NULL);
 
 	zend_enum_add_case_cstr(class_entry, "CAST_LONG", NULL);
 

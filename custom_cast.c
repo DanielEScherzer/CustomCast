@@ -57,7 +57,19 @@ static zend_result get_cast_enum_val( int type, zval *param ) {
 		ZVAL_COPY_VALUE(param, &(c->value));
 		return SUCCESS;
 	}
-	// TODO CAST_NUMBER
+	if (type == IS_DOUBLE) {
+		zend_class_constant *c = zend_hash_str_find_ptr(
+			&(custom_cast_type_enum_ce->constants_table),
+			"CAST_FLOAT",
+			sizeof( "CAST_FLOAT" ) - 1
+		);
+		ZEND_ASSERT(c && "Valid enum case");
+		if (Z_TYPE(c->value) == IS_CONSTANT_AST) {
+			zval_update_constant_ex(&c->value, c->ce);
+		}
+		ZVAL_COPY_VALUE(param, &(c->value));
+		return SUCCESS;
+	}
 	return FAILURE;
 }
 
@@ -102,9 +114,44 @@ static zend_result custom_cast_do_cast(
 		}
 		return FAILURE;
 	}
-	if (type == _IS_BOOL || type == IS_LONG) {
-		ZVAL_COPY(writeobj, &fcallReturn);
-		return SUCCESS;
+	if (type == _IS_BOOL) {
+		if (EXPECTED(
+			Z_TYPE_INFO(fcallReturn) == IS_TRUE
+			|| Z_TYPE_INFO(fcallReturn) == IS_FALSE
+		) ) {
+			ZVAL_COPY(writeobj, &fcallReturn);
+			return SUCCESS;
+		}
+		zval_ptr_dtor(&castParam);
+		zend_error_noreturn(
+			E_ERROR,
+			"Method %s::__doCast() did not return a boolean",
+			ZSTR_VAL(readobj->ce->name)
+		);
+	}
+	if (type == IS_LONG) {
+		if (EXPECTED(Z_TYPE_INFO(fcallReturn) == IS_LONG) ) {
+			ZVAL_COPY(writeobj, &fcallReturn);
+			return SUCCESS;
+		}
+		zval_ptr_dtor(&castParam);
+		zend_error_noreturn(
+			E_ERROR,
+			"Method %s::__doCast() did not return an integer",
+			ZSTR_VAL(readobj->ce->name)
+		);
+	}
+	if (type == IS_DOUBLE) {
+		if (EXPECTED(Z_TYPE_INFO(fcallReturn) == IS_DOUBLE) ) {
+			ZVAL_COPY(writeobj, &fcallReturn);
+			return SUCCESS;
+		}
+		zval_ptr_dtor(&castParam);
+		zend_error_noreturn(
+			E_ERROR,
+			"Method %s::__doCast() did not return a floating-point number",
+			ZSTR_VAL(readobj->ce->name)
+		);
 	}
 	
 	return FAILURE;
