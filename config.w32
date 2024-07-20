@@ -1,0 +1,7 @@
+ARG_ENABLE('custom_cast', 'custom_cast support', 'no');
+
+if (PHP_CUSTOM_CAST != 'no') {
+	AC_DEFINE('HAVE_CUSTOM_CAST', 1, 'custom_cast support enabled');
+
+	EXTENSION('custom_cast', 'custom_cast.c', null, '/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1');
+}
