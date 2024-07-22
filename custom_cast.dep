@@ -93,6 +93,7 @@ custom_cast.lo: /usr/src/php/ext/custom_cast/custom_cast.c \
  /usr/local/include/php/Zend/zend_enum.h \
  /usr/local/include/php/Zend/zend_execute.h \
  /usr/local/include/php/Zend/zend_hash.h \
+ /usr/local/include/php/Zend/zend_inheritance.h \
  /usr/local/include/php/Zend/zend_objects.h \
  /usr/local/include/php/Zend/zend_object_handlers.h \
  /usr/local/include/php/Zend/zend_types.h \

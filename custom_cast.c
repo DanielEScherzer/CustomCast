@@ -13,6 +13,7 @@
 #include "Zend/zend_enum.h"
 #include "Zend/zend_execute.h"
 #include "Zend/zend_hash.h"
+#include "Zend/zend_inheritance.h"
 #include "Zend/zend_objects.h"
 #include "Zend/zend_object_handlers.h"
 #include "Zend/zend_types.h"
@@ -102,10 +103,10 @@ static zend_result custom_cast_do_cast(
 		readobj,
 		&fcallReturn,
 		&castParam
-	);
+	);	
+	zval_ptr_dtor(&castParam);
 
 	if (Z_ISUNDEF(fcallReturn) || Z_ISNULL(fcallReturn)) {
-		zval_ptr_dtor(&castParam);
 		// match zend_std_cast_object_tostring if the developer explicitly
 		// hasn't returned anything for booleans
 		if (type == _IS_BOOL) {
@@ -122,7 +123,6 @@ static zend_result custom_cast_do_cast(
 			ZVAL_COPY(writeobj, &fcallReturn);
 			return SUCCESS;
 		}
-		zval_ptr_dtor(&castParam);
 		zend_error_noreturn(
 			E_ERROR,
 			"Method %s::__doCast() did not return a boolean",
@@ -134,7 +134,6 @@ static zend_result custom_cast_do_cast(
 			ZVAL_COPY(writeobj, &fcallReturn);
 			return SUCCESS;
 		}
-		zval_ptr_dtor(&castParam);
 		zend_error_noreturn(
 			E_ERROR,
 			"Method %s::__doCast() did not return an integer",
@@ -146,7 +145,6 @@ static zend_result custom_cast_do_cast(
 			ZVAL_COPY(writeobj, &fcallReturn);
 			return SUCCESS;
 		}
-		zval_ptr_dtor(&castParam);
 		zend_error_noreturn(
 			E_ERROR,
 			"Method %s::__doCast() did not return a floating-point number",
@@ -176,30 +174,83 @@ static void require_user_class(uint32_t flags) {
 	}
 
 }
+
+// RECURSIVE handler for checking based on parent classes too
+static bool check_class_has_interface(zend_class_entry *scope) {
+	if (scope == NULL) {
+		// Huh?
+		return false;
+	}
+	// Might be *linked* (so already have class entries) but not *resolved*,
+	// since that waits until the inherited parent class is resolved
+	if (scope->ce_flags & ZEND_ACC_LINKED) {
+		for (uint32_t iii = 0; iii < scope->num_interfaces; iii++) {
+			if (scope->interfaces[iii] == custom_cast_castable_interface_ce ) {
+				return true;
+			}
+		}
+	} else {
+		for (uint32_t iii = 0; iii < scope->num_interfaces; iii++) {
+			if (zend_string_equals_literal(
+				scope->interface_names[iii].lc_name,
+				"hascustomcast"
+			)) {
+				// Interface was added manually be the developer
+				return true;
+			}
+		}
+	}
+	zend_class_entry *parent = NULL;
+	if (scope->ce_flags & ZEND_ACC_LINKED) {
+		if (scope->parent == NULL) {
+			return false;
+		}
+		parent = scope->parent;
+	} else if (scope->parent_name == NULL) {
+		return false;
+	} else {
+		zend_class_entry *parent = zend_lookup_class_ex(
+			scope->parent_name,
+			NULL,
+			ZEND_FETCH_CLASS_ALLOW_UNLINKED
+		);
+	}
+	if ( parent == NULL ) {
+		// Invalid class to extend? Leave that up to normal PHP to deal with
+		return false;
+	}
+	if ( parent == scope ) {
+		// HUH?
+		return false;
+	}
+	bool result = check_class_has_interface(parent);
+
+	// Make sure that the parent class gets resolved, since when if that
+	// happens later
+	return result;
+}
 static void ensure_class_has_interface(zend_class_entry *scope) {
-	ZEND_ASSERT(!(scope->ce_flags & ZEND_ACC_LINKED));
+	if (check_class_has_interface(scope)) {
+		return;
+	}
+	if (scope->ce_flags & ZEND_ACC_LINKED) {
+		// There is already a method to add interfaces
+		zend_do_implement_interface( scope, custom_cast_castable_interface_ce );
+		return;
+	}
+
+	// Generally used for when extension is triggered via trait
 	// zend_compile_class_decl() runs zend_compile_attributes() before the
 	// zend_compile_stmt() that sets up the actual body of the class, so we
 	// cannot just check if the __doCast() function is there based on the
-	// function_table. We could add some ugly logic to (ab)use the observer
-	// system to do the validation after the fact, but instead, lets just
-	// add the `HaveCustomCast` interface, and when the interfaces get validated
-	// that will enforce that the method exists - inspired by how `Stringable`
-	// always gets added
-	for (uint32_t iii = 0; iii < scope->num_interfaces; iii++) {
-		if (zend_string_equals_literal(
-			scope->interface_names[iii].lc_name,
-			"hascustomcast"
-		)) {
-			// Interface was added manually be the developer, weird but okay
-			return;
-		}
-	}
+	// function_table. Add the `HaveCustomCast` interface, and when the
+	// interfaces get validated that will enforce that the method exists -
+	// inspired by how `Stringable` always gets added
 
 	// Must not have been added directly; add it automatically, but only as
 	// as part of the list of interfaces, not checking it now because that will
 	// be done automatically, i.e. not doing
-	// zend_class_implements(scope, 1, custom_cast_castable_interface_ce);
+	// zend_do_implement_interface(scope, custom_cast_castable_interface_ce);
 	const uint32_t interfaceIdx = scope->num_interfaces;
 	scope->num_interfaces++;
 
