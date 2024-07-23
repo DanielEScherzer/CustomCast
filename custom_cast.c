@@ -6,17 +6,21 @@
 
 #include "php.h"
 #include "ext/standard/info.h"
+#include "ext/standard/php_var.h"
 #include "php_custom_cast.h"
 #include "Zend/zend_API.h"
 #include "Zend/zend_ast.h"
 #include "Zend/zend_attributes.h"
+#include "Zend/zend_compile.h"
 #include "Zend/zend_enum.h"
 #include "Zend/zend_execute.h"
 #include "Zend/zend_hash.h"
 #include "Zend/zend_inheritance.h"
+#include "Zend/zend_smart_str.h"
 #include "Zend/zend_objects.h"
 #include "Zend/zend_object_handlers.h"
 #include "Zend/zend_types.h"
+#include "Zend/zend_variables.h"
 #include "custom_cast_arginfo.h"
 
 
@@ -34,7 +38,7 @@ ZEND_METHOD(CustomCastable, __construct)
 static zend_result get_cast_enum_val( int type, zval *param ) {
 	if (type == _IS_BOOL) {
 		zend_class_constant *c = zend_hash_str_find_ptr(
-			&(custom_cast_type_enum_ce->constants_table),
+			CE_CONSTANTS_TABLE(custom_cast_type_enum_ce),
 			"CAST_BOOL",
 			sizeof( "CAST_BOOL" ) - 1
 		);
@@ -43,11 +47,12 @@ static zend_result get_cast_enum_val( int type, zval *param ) {
 			zval_update_constant_ex(&c->value, c->ce);
 		}
 		ZVAL_COPY_VALUE(param, &(c->value));
+		zval_add_ref(param);
 		return SUCCESS;
 	}
 	if (type == IS_LONG) {
 		zend_class_constant *c = zend_hash_str_find_ptr(
-			&(custom_cast_type_enum_ce->constants_table),
+			CE_CONSTANTS_TABLE(custom_cast_type_enum_ce),
 			"CAST_LONG",
 			sizeof( "CAST_LONG" ) - 1
 		);
@@ -56,11 +61,12 @@ static zend_result get_cast_enum_val( int type, zval *param ) {
 			zval_update_constant_ex(&c->value, c->ce);
 		}
 		ZVAL_COPY_VALUE(param, &(c->value));
+		zval_add_ref(param);
 		return SUCCESS;
 	}
 	if (type == IS_DOUBLE) {
 		zend_class_constant *c = zend_hash_str_find_ptr(
-			&(custom_cast_type_enum_ce->constants_table),
+			CE_CONSTANTS_TABLE(custom_cast_type_enum_ce),
 			"CAST_FLOAT",
 			sizeof( "CAST_FLOAT" ) - 1
 		);
@@ -69,6 +75,7 @@ static zend_result get_cast_enum_val( int type, zval *param ) {
 			zval_update_constant_ex(&c->value, c->ce);
 		}
 		ZVAL_COPY_VALUE(param, &(c->value));
+		zval_add_ref(param);
 		return SUCCESS;
 	}
 	return FAILURE;
@@ -107,6 +114,7 @@ static zend_result custom_cast_do_cast(
 	zval_ptr_dtor(&castParam);
 
 	if (Z_ISUNDEF(fcallReturn) || Z_ISNULL(fcallReturn)) {
+		zval_ptr_dtor(&fcallReturn);
 		// match zend_std_cast_object_tostring if the developer explicitly
 		// hasn't returned anything for booleans
 		if (type == _IS_BOOL) {
@@ -115,42 +123,56 @@ static zend_result custom_cast_do_cast(
 		}
 		return FAILURE;
 	}
+	smart_str gotResult = { 0 };
+	php_var_export_ex( &fcallReturn, 0, &gotResult );
+	smart_str_0(&gotResult);
 	if (type == _IS_BOOL) {
 		if (EXPECTED(
 			Z_TYPE_INFO(fcallReturn) == IS_TRUE
 			|| Z_TYPE_INFO(fcallReturn) == IS_FALSE
 		) ) {
 			ZVAL_COPY(writeobj, &fcallReturn);
+			zval_ptr_dtor(&fcallReturn);
+			smart_str_free( &gotResult );
 			return SUCCESS;
 		}
 		zend_error_noreturn(
 			E_ERROR,
-			"Method %s::__doCast() did not return a boolean",
-			ZSTR_VAL(readobj->ce->name)
+			"Method %s::__doCast() did not return a boolean, got %s",
+			ZSTR_VAL(readobj->ce->name),
+			ZSTR_VAL( gotResult.s )
 		);
 	}
 	if (type == IS_LONG) {
 		if (EXPECTED(Z_TYPE_INFO(fcallReturn) == IS_LONG) ) {
 			ZVAL_COPY(writeobj, &fcallReturn);
+			zval_ptr_dtor(&fcallReturn);
+			smart_str_free( &gotResult );
 			return SUCCESS;
 		}
 		zend_error_noreturn(
 			E_ERROR,
-			"Method %s::__doCast() did not return an integer",
-			ZSTR_VAL(readobj->ce->name)
+			"Method %s::__doCast() did not return an integer, got %s",
+			ZSTR_VAL(readobj->ce->name),
+			ZSTR_VAL( gotResult.s )
 		);
 	}
 	if (type == IS_DOUBLE) {
 		if (EXPECTED(Z_TYPE_INFO(fcallReturn) == IS_DOUBLE) ) {
+			zval_ptr_dtor(&fcallReturn);
 			ZVAL_COPY(writeobj, &fcallReturn);
+			smart_str_free( &gotResult );
 			return SUCCESS;
 		}
 		zend_error_noreturn(
 			E_ERROR,
-			"Method %s::__doCast() did not return a floating-point number",
-			ZSTR_VAL(readobj->ce->name)
+			"Method %s::__doCast() did not return a floating-point number, got %s",
+			ZSTR_VAL(readobj->ce->name),
+			ZSTR_VAL( gotResult.s )
 		);
 	}
+	smart_str_free( &gotResult );
+	zval_ptr_dtor(&fcallReturn);
 	
 	return FAILURE;
 }

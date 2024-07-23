@@ -18,4 +18,4 @@ var_dump( (int)$d );
 
 ?>
 --EXPECTF--
-Fatal error: Method Demo::__doCast() did not return an integer in %s on line %d
+Fatal error: Method Demo::__doCast() did not return an integer, got true in %s on line %d

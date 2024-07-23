@@ -86,15 +86,24 @@ custom_cast.lo: /usr/src/php/ext/custom_cast/custom_cast.c \
  /usr/local/include/php/Zend/zend_constants.h \
  /usr/local/include/php/main/php_reentrancy.h \
  /usr/local/include/php/ext/standard/info.h \
+ /usr/local/include/php/ext/standard/php_var.h \
+ /usr/local/include/php/ext/standard/basic_functions.h \
+ /usr/local/include/php/ext/standard/php_filestat.h \
+ /usr/local/include/php/Zend/zend_highlight.h \
+ /usr/local/include/php/ext/standard/url_scanner_ex.h \
+ /usr/local/include/php/ext/random/php_random.h \
  /usr/src/php/ext/custom_cast/php_custom_cast.h \
  /usr/local/include/php/Zend/zend_API.h \
  /usr/local/include/php/Zend/zend_ast.h \
  /usr/local/include/php/Zend/zend_attributes.h \
+ /usr/local/include/php/Zend/zend_compile.h \
  /usr/local/include/php/Zend/zend_enum.h \
  /usr/local/include/php/Zend/zend_execute.h \
  /usr/local/include/php/Zend/zend_hash.h \
  /usr/local/include/php/Zend/zend_inheritance.h \
+ /usr/local/include/php/Zend/zend_smart_str.h \
  /usr/local/include/php/Zend/zend_objects.h \
  /usr/local/include/php/Zend/zend_object_handlers.h \
  /usr/local/include/php/Zend/zend_types.h \
+ /usr/local/include/php/Zend/zend_variables.h \
  /usr/src/php/ext/custom_cast/custom_cast_arginfo.h
