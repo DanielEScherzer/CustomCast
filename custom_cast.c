@@ -56,49 +56,32 @@ ZEND_METHOD(CustomCastable, __construct)
 }
 
 static zend_result get_cast_enum_val( int type, zval *param ) {
+	char *name = NULL;
+	size_t len = 0;
 	if (type == _IS_BOOL) {
-		zend_class_constant *c = zend_hash_str_find_ptr(
-			CE_CONSTANTS_TABLE(custom_cast_type_enum_ce),
-			"CAST_BOOL",
-			sizeof( "CAST_BOOL" ) - 1
-		);
-		ZEND_ASSERT(c && "Valid enum case");
-		if (Z_TYPE(c->value) == IS_CONSTANT_AST) {
-			zval_update_constant_ex(&c->value, c->ce);
-		}
-		ZVAL_COPY_VALUE(param, &(c->value));
-		zval_add_ref(param);
-		return SUCCESS;
+		name = "CAST_BOOL";
+		len = sizeof( "CAST_BOOL" ) - 1;
+	} else if (type == IS_LONG) {
+		name = "CAST_LONG";
+		len = sizeof( "CAST_LONG" ) - 1;
+	} else if (type == IS_DOUBLE) {
+		name = "CAST_FLOAT";
+		len = sizeof( "CAST_FLOAT" ) - 1;
+	} else {
+		return FAILURE;
 	}
-	if (type == IS_LONG) {
-		zend_class_constant *c = zend_hash_str_find_ptr(
-			CE_CONSTANTS_TABLE(custom_cast_type_enum_ce),
-			"CAST_LONG",
-			sizeof( "CAST_LONG" ) - 1
-		);
-		ZEND_ASSERT(c && "Valid enum case");
-		if (Z_TYPE(c->value) == IS_CONSTANT_AST) {
-			zval_update_constant_ex(&c->value, c->ce);
-		}
-		ZVAL_COPY_VALUE(param, &(c->value));
-		zval_add_ref(param);
-		return SUCCESS;
+	zend_class_constant *c = zend_hash_str_find_ptr(
+		CE_CONSTANTS_TABLE(custom_cast_type_enum_ce),
+		name,
+		len
+	);
+	ZEND_ASSERT(c && "Valid enum case");
+	if (Z_TYPE(c->value) == IS_CONSTANT_AST) {
+		zval_update_constant_ex(&c->value, c->ce);
 	}
-	if (type == IS_DOUBLE) {
-		zend_class_constant *c = zend_hash_str_find_ptr(
-			CE_CONSTANTS_TABLE(custom_cast_type_enum_ce),
-			"CAST_FLOAT",
-			sizeof( "CAST_FLOAT" ) - 1
-		);
-		ZEND_ASSERT(c && "Valid enum case");
-		if (Z_TYPE(c->value) == IS_CONSTANT_AST) {
-			zval_update_constant_ex(&c->value, c->ce);
-		}
-		ZVAL_COPY_VALUE(param, &(c->value));
-		zval_add_ref(param);
-		return SUCCESS;
-	}
-	return FAILURE;
+	ZVAL_COPY_VALUE(param, &(c->value));
+	zval_add_ref(param);
+	return SUCCESS;
 }
 
 static zend_result custom_cast_do_cast(
@@ -219,10 +202,6 @@ static void require_user_class(uint32_t flags) {
 
 // RECURSIVE handler for checking based on parent classes too
 static bool check_class_has_interface(zend_class_entry *scope) {
-	if (scope == NULL) {
-		// Huh?
-		return false;
-	}
 	// Might be *linked* (so already have class entries) but not *resolved*,
 	// since that waits until the inherited parent class is resolved
 	if (scope->ce_flags & ZEND_ACC_LINKED) {
@@ -261,16 +240,20 @@ static bool check_class_has_interface(zend_class_entry *scope) {
 		// Invalid class to extend? Leave that up to normal PHP to deal with
 		return false;
 	}
-	if ( parent == scope ) {
-		// HUH?
-		return false;
-	}
-	bool result = check_class_has_interface(parent);
-
-	// Make sure that the parent class gets resolved, since when if that
-	// happens later
-	return result;
+	return check_class_has_interface(parent);
 }
+
+/**
+ * When invoking the functionality via the trait, zend_compile_class_decl()
+ * runs zend_compile_attributes() before the zend_compile_stmt() that sets up
+ * the actual body of the class, so we cannot just check if the __doCast()
+ * function is there based on the function_table. Add the `HaveCustomCast`
+ * interface, and when the interfaces get validated that will enforce that the
+ * method exists - inspired by how `Stringable` always gets added.
+ *
+ * When invoking the functionality via the observer, we still add the interface
+ * for consistency
+ */
 static void ensure_class_has_interface(zend_class_entry *scope) {
 	if (check_class_has_interface(scope)) {
 		return;
@@ -281,18 +264,7 @@ static void ensure_class_has_interface(zend_class_entry *scope) {
 		return;
 	}
 
-	// Generally used for when extension is triggered via trait
-	// zend_compile_class_decl() runs zend_compile_attributes() before the
-	// zend_compile_stmt() that sets up the actual body of the class, so we
-	// cannot just check if the __doCast() function is there based on the
-	// function_table. Add the `HaveCustomCast` interface, and when the
-	// interfaces get validated that will enforce that the method exists -
-	// inspired by how `Stringable` always gets added
-
-	// Must not have been added directly; add it automatically, but only as
-	// as part of the list of interfaces, not checking it now because that will
-	// be done automatically, i.e. not doing
-	// zend_do_implement_interface(scope, custom_cast_castable_interface_ce);
+	// Add the interface automatically to the list
 	const uint32_t interfaceIdx = scope->num_interfaces;
 	scope->num_interfaces++;
 
@@ -346,7 +318,6 @@ static void observe_class_linked(zend_class_entry *ce, zend_string *name) {
 			sizeof( "customcastable" ) - 1
 		);
 		if (attribVal != NULL) {
-			fprintf(stderr, "Found attribute on: %s too\n", ZSTR_VAL(name));
 			return;
 		}
 	}

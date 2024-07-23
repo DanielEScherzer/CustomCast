@@ -1,8 +1,9 @@
 --TEST--
-`HasCustomCast` interface can also be inherited, if the subclass has the attribute,
-and more importantly, the custom cast logic still works works (though the attribute
-needs to be on BOTH the parent and subclass, at least for now) (but the interface
-does not need to be manually declared for it to be inherited)
+`HasCustomCast` interface can be declared in subclasses without conflicts
+--DESCRIPTION--
+Not only is the functionality inherited, but the interface is too (as normal)
+but can also can also be inherited; if the subclass has the attribute, there are
+no conflicts.
 --EXTENSIONS--
 custom_cast
 --FILE--

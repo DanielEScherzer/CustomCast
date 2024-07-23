@@ -1,6 +1,5 @@
 --TEST--
-Check that the `CustomCastable` attribute doesn't change error messages for
-missing return values
+Custom casting doesn't change error messages for missing return values
 --EXTENSIONS--
 custom_cast
 --FILE--

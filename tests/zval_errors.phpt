@@ -1,6 +1,8 @@
 --TEST--
-Check that the `CustomCastable` attribute isn't causing issues
-"Internal zval's can't be arrays, objects, resources or reference"
+Check that the `CustomCastable` attribute isn't causing issues with zvals
+--DESCRIPTION--
+Was getting errors of "Internal zval's can't be arrays, objects, resources or
+reference" in various cases, make sure to detect if that happens again
 --EXTENSIONS--
 custom_cast
 --FILE--

@@ -1,5 +1,5 @@
 --TEST--
-Can the `custom_cast.use_observer` INI setting be true?
+The `custom_cast.use_observer` INI setting can be true
 --EXTENSIONS--
 custom_cast
 --INI--

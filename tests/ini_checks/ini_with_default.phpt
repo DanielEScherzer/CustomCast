@@ -1,5 +1,5 @@
 --TEST--
-Does the `custom_cast.use_observer` INI setting exist?
+The `custom_cast.use_observer` INI setting exists
 --EXTENSIONS--
 custom_cast
 --FILE--

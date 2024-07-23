@@ -1,5 +1,5 @@
 --TEST--
-Custom casting on parent classes applies to children even without the attribute
+Custom casting on parent classes gets inherited
 --EXTENSIONS--
 custom_cast
 --FILE--

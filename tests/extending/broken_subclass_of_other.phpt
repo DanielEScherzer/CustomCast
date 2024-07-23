@@ -1,6 +1,9 @@
 --TEST--
-Custom casting can be added to the children of non-custom-casting parent classes;
-currently not supported but this test will help confirm if that ever changes
+Unable to use custom casting if not added to parent class
+--DESCRIPTION--
+Custom casting will eventually be available to the children of
+non-custom-casting parent classes; currently not supported but this test will
+help confirm if that ever changes
 --EXTENSIONS--
 custom_cast
 --FILE--
