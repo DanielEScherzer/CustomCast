@@ -19,6 +19,7 @@
 #include "Zend/zend_smart_str.h"
 #include "Zend/zend_objects.h"
 #include "Zend/zend_object_handlers.h"
+#include "Zend/zend_observer.h"
 #include "Zend/zend_types.h"
 #include "Zend/zend_variables.h"
 #include "custom_cast_arginfo.h"
@@ -29,6 +30,25 @@ ZEND_API zend_class_entry *custom_cast_type_enum_ce;
 ZEND_API zend_class_entry *custom_cast_castable_interface_ce;
 
 static zend_object_handlers custom_cast_obj_handlers;
+
+/**
+ * INI option to use an observer to automatically detect __doCast() without
+ * needing the attribute, based on the observer system
+ */
+PHP_INI_BEGIN()
+STD_PHP_INI_BOOLEAN(
+	"custom_cast.use_observer",
+	"0",
+	PHP_INI_SYSTEM,
+	OnUpdateBool,
+	// field in the globals
+	use_observer,
+	// type of globals
+	zend_custom_cast_globals,
+	// pointer to globals
+	custom_cast_globals
+)
+PHP_INI_END()
 
 ZEND_METHOD(CustomCastable, __construct)
 {
@@ -304,6 +324,38 @@ static void setup_CustomCastable_as_attribute(zend_class_entry *class_entry) {
 	ZVAL_COPY_VALUE(&attribute_Attribute_class_CustomCastable_0->args[0].value, &attribute_Attribute_class_CustomCastable_0_arg0);
 }
 
+// signature matches type of `zend_observer_class_linked_cb`
+static void observe_class_linked(zend_class_entry *ce, zend_string *name) {
+	zend_function *fn = zend_hash_str_find_ptr(
+		&ce->function_table,
+		"__docast",
+		sizeof( "__docast" ) - 1
+	);
+	// Most classes don't have the method
+	if (EXPECTED(fn == NULL)) {
+		return;
+	}
+	// If the class has the method and also the attribute, nothing left to do,
+	// since the attribute already validated things; not using
+	// zend_get_attribute() or similar since we are only checking that the
+	// attribute is there
+	if ( ce->attributes != NULL ) {
+		zval *attribVal = zend_hash_str_find(
+			ce->attributes,
+			"customcastable",
+			sizeof( "customcastable" ) - 1
+		);
+		if (attribVal != NULL) {
+			fprintf(stderr, "Found attribute on: %s too\n", ZSTR_VAL(name));
+			return;
+		}
+	}
+
+	// TODO should we also add the attribute?
+	ensure_class_has_interface(ce);
+	ce->default_object_handlers = &custom_cast_obj_handlers;
+}
+
 static PHP_MINIT_FUNCTION(custom_cast) {
 	custom_cast_attrib_ce = register_class_CustomCastable();
 	setup_CustomCastable_as_attribute(custom_cast_attrib_ce);
@@ -322,6 +374,9 @@ static PHP_MINIT_FUNCTION(custom_cast) {
 	);
 	custom_cast_obj_handlers.cast_object = custom_cast_do_cast;
 
+	// Add INI
+	REGISTER_INI_ENTRIES();
+
 	return SUCCESS;
 }
 
@@ -331,6 +386,21 @@ PHP_RINIT_FUNCTION(custom_cast)
 #if defined(ZTS) && defined(COMPILE_DL_CUSTOM_CAST)
 	ZEND_TSRMLS_CACHE_UPDATE();
 #endif
+
+	// Add observer
+	if (CUSTOM_CAST_G(use_observer)) {
+		zend_observer_class_linked_register(observe_class_linked);
+	}
+
+	return SUCCESS;
+}
+/* }}} */
+
+/* {{{ PHP_MSHUTDOWN_FUNCTION */
+PHP_MSHUTDOWN_FUNCTION(custom_cast) {
+	
+	// Unregister INI
+	UNREGISTER_INI_ENTRIES();
 
 	return SUCCESS;
 }
@@ -342,6 +412,9 @@ PHP_MINFO_FUNCTION(custom_cast)
 	php_info_print_table_start();
 	php_info_print_table_row(2, "custom_cast support", "enabled");
 	php_info_print_table_end();
+
+	// Show INI
+	DISPLAY_INI_ENTRIES();
 }
 /* }}} */
 
@@ -351,7 +424,7 @@ zend_module_entry custom_cast_module_entry = {
 	"custom_cast",					/* Extension name */
 	NULL,							/* zend_function_entry */
 	PHP_MINIT(custom_cast),			/* PHP_MINIT - Module initialization */
-	NULL,							/* PHP_MSHUTDOWN - Module shutdown */
+	PHP_MSHUTDOWN(custom_cast),		/* PHP_MSHUTDOWN - Module shutdown */
 	PHP_RINIT(custom_cast),			/* PHP_RINIT - Request initialization */
 	NULL,							/* PHP_RSHUTDOWN - Request shutdown */
 	PHP_MINFO(custom_cast),			/* PHP_MINFO - Module info */

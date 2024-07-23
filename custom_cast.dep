@@ -104,6 +104,9 @@ custom_cast.lo: /usr/src/php/ext/custom_cast/custom_cast.c \
  /usr/local/include/php/Zend/zend_smart_str.h \
  /usr/local/include/php/Zend/zend_objects.h \
  /usr/local/include/php/Zend/zend_object_handlers.h \
+ /usr/local/include/php/Zend/zend_observer.h \
+ /usr/local/include/php/Zend/zend_fibers.h \
+ /usr/local/include/php/Zend/zend_API.h \
  /usr/local/include/php/Zend/zend_types.h \
  /usr/local/include/php/Zend/zend_variables.h \
  /usr/src/php/ext/custom_cast/custom_cast_arginfo.h
