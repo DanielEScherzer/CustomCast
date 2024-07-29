@@ -162,8 +162,8 @@ static zend_result custom_cast_do_cast(
 	}
 	if (type == IS_DOUBLE) {
 		if (EXPECTED(Z_TYPE_INFO(fcallReturn) == IS_DOUBLE) ) {
-			zval_ptr_dtor(&fcallReturn);
 			ZVAL_COPY(writeobj, &fcallReturn);
+			zval_ptr_dtor(&fcallReturn);
 			smart_str_free( &gotResult );
 			return SUCCESS;
 		}
