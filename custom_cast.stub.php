@@ -16,6 +16,7 @@ namespace CustomCasting {
         public function __doCast(CastableTarget $t) {}
     }
 
+    /** @strict-properties */
     final class CustomCastable {
         public function __construct() {}
     }

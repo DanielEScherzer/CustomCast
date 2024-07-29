@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: 57ed665deb1d24b17a79bc7359b544b2bcdaeb20 */
+ * Stub hash: 01bcb8c9cfefd7c9447f054784b418fe55193c67 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_CustomCasting_HasCustomCast___doCast, 0, 0, 1)
 	ZEND_ARG_OBJ_INFO(0, t, CustomCasting\\CastableTarget, 0)
@@ -57,7 +57,7 @@ static zend_class_entry *register_class_CustomCasting_CustomCastable(void)
 
 	INIT_NS_CLASS_ENTRY(ce, "CustomCasting", "CustomCastable", class_CustomCasting_CustomCastable_methods);
 	class_entry = zend_register_internal_class_ex(&ce, NULL);
-	class_entry->ce_flags |= ZEND_ACC_FINAL;
+	class_entry->ce_flags |= ZEND_ACC_FINAL|ZEND_ACC_NO_DYNAMIC_PROPERTIES;
 
 	return class_entry;
 }
