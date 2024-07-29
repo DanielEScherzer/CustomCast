@@ -6,6 +6,9 @@ custom_cast
 custom_cast.use_observer=true
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+
 class Demo {
 	public function __doCast(CastableTarget $t) {
 		switch ($t) {
@@ -32,7 +35,7 @@ var_dump( (int)$demo );
 
 ?>
 --EXPECT--
-string(13) "HasCustomCast"
+string(27) "CustomCasting\HasCustomCast"
 bool(false)
 float(23.45)
 int(987)

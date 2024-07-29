@@ -50,7 +50,7 @@ STD_PHP_INI_BOOLEAN(
 )
 PHP_INI_END()
 
-ZEND_METHOD(CustomCastable, __construct)
+ZEND_METHOD(CustomCasting_CustomCastable, __construct)
 {
 	ZEND_PARSE_PARAMETERS_NONE();
 }
@@ -214,7 +214,7 @@ static bool check_class_has_interface(zend_class_entry *scope) {
 		for (uint32_t iii = 0; iii < scope->num_interfaces; iii++) {
 			if (zend_string_equals_literal(
 				scope->interface_names[iii].lc_name,
-				"hascustomcast"
+				"customcasting\\hascustomcast"
 			)) {
 				// Interface was added manually be the developer
 				return true;
@@ -272,8 +272,16 @@ static void ensure_class_has_interface(zend_class_entry *scope) {
 		scope->interface_names,
 		sizeof(zend_class_name) * scope->num_interfaces
 	);
-	newInterfaceSet[interfaceIdx].name = zend_string_init("HasCustomCast", sizeof("HasCustomCast") - 1, 0);
-	newInterfaceSet[interfaceIdx].lc_name = zend_string_init("hascustomcast", sizeof("hascustomcast") - 1, 0);
+	newInterfaceSet[interfaceIdx].name = zend_string_init(
+		"CustomCasting\\HasCustomCast",
+		sizeof("CustomCasting\\HasCustomCast") - 1,
+		0
+	);
+	newInterfaceSet[interfaceIdx].lc_name = zend_string_init(
+		"customcasting\\hascustomcast", 
+		sizeof("customcasting\\hascustomcast") - 1,
+		0
+	);
 	scope->interface_names = newInterfaceSet;
 }
 
@@ -328,15 +336,15 @@ static void observe_class_linked(zend_class_entry *ce, zend_string *name) {
 }
 
 static PHP_MINIT_FUNCTION(custom_cast) {
-	custom_cast_attrib_ce = register_class_CustomCastable();
+	custom_cast_attrib_ce = register_class_CustomCasting_CustomCastable();
 	setup_CustomCastable_as_attribute(custom_cast_attrib_ce);
 
 	zend_internal_attribute *attr_internal;
 	attr_internal = zend_mark_internal_attribute(custom_cast_attrib_ce);
 	attr_internal->validator = validate_custom_castable;
 
-	custom_cast_type_enum_ce = register_class_CastableTarget();
-	custom_cast_castable_interface_ce = register_class_HasCustomCast();
+	custom_cast_type_enum_ce = register_class_CustomCasting_CastableTarget();
+	custom_cast_castable_interface_ce = register_class_CustomCasting_HasCustomCast();
 
 	memcpy(
 		&custom_cast_obj_handlers,

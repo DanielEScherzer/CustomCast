@@ -4,6 +4,10 @@ Check that the `CustomCastable` attribute on an Iterator doesn't break the handl
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+use CustomCasting\CustomCastable;
+
 #[CustomCastable]
 class Demo implements Iterator {
 	private $data = [ 'a', 'b', 'c' ];

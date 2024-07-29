@@ -4,7 +4,7 @@ Check that the `CustomCastable` class exists
 custom_cast
 --FILE--
 <?php
-var_dump(class_exists('CustomCastable'));
+var_dump(class_exists('CustomCasting\\CustomCastable'));
 ?>
 --EXPECT--
 bool(true)

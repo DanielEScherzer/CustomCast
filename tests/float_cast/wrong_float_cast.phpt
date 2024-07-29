@@ -4,6 +4,10 @@ Error when float cast returns wrong type
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+use CustomCasting\CustomCastable;
+
 #[CustomCastable]
 class Demo {
 

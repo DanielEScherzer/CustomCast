@@ -4,6 +4,10 @@ Custom casting doesn't change error messages for missing return values
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+use CustomCasting\CustomCastable;
+
 #[CustomCastable]
 class WithAttrib {
     public function __doCast(CastableTarget $t) {}

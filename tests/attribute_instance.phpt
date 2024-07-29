@@ -5,9 +5,11 @@ custom_cast
 --FILE--
 <?php
 
+use CustomCasting\CustomCastable;
+
 $a = new CustomCastable();
 var_dump( $a );
 ?>
 --EXPECT--
-object(CustomCastable)#1 (0) {
+object(CustomCasting\CustomCastable)#1 (0) {
 }

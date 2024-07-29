@@ -4,6 +4,9 @@
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CustomCastable;
+
 #[CustomCastable]
 interface Demo {
 }

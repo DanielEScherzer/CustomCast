@@ -4,6 +4,9 @@
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+
 var_dump(CastableTarget::cases());
 
 foreach ( CastableTarget::cases() as $c ) {
@@ -13,11 +16,11 @@ foreach ( CastableTarget::cases() as $c ) {
 --EXPECT--
 array(3) {
   [0]=>
-  enum(CastableTarget::CAST_BOOL)
+  enum(CustomCasting\CastableTarget::CAST_BOOL)
   [1]=>
-  enum(CastableTarget::CAST_FLOAT)
+  enum(CustomCasting\CastableTarget::CAST_FLOAT)
   [2]=>
-  enum(CastableTarget::CAST_LONG)
+  enum(CustomCasting\CastableTarget::CAST_LONG)
 }
 string(9) "CAST_BOOL"
 string(10) "CAST_FLOAT"

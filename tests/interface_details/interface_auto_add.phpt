@@ -4,6 +4,10 @@
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+use CustomCasting\CustomCastable;
+
 #[CustomCastable]
 class Demo {
 	public function __doCast(CastableTarget $t) {
@@ -18,4 +22,4 @@ foreach ( $demoRef->getInterfaces() as $i ) {
 
 ?>
 --EXPECT--
-string(13) "HasCustomCast"
+string(27) "CustomCasting\HasCustomCast"

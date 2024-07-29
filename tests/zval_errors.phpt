@@ -7,6 +7,10 @@ reference" in various cases, make sure to detect if that happens again
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+use CustomCasting\CustomCastable;
+
 #[CustomCastable]
 class UnusedParam {
     public function __doCast(CastableTarget $t) {

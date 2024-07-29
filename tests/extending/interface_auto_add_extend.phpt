@@ -8,6 +8,10 @@ no conflicts.
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+use CustomCasting\CustomCastable;
+
 #[CustomCastable]
 class Demo {
 	public function __doCast(CastableTarget $t) {
@@ -39,6 +43,6 @@ var_dump((int)$demo3);
 
 ?>
 --EXPECT--
-string(13) "HasCustomCast"
+string(27) "CustomCasting\HasCustomCast"
 int(777)
 int(888)

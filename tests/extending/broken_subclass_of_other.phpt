@@ -8,6 +8,10 @@ help confirm if that ever changes
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+use CustomCasting\CustomCastable;
+
 class NoCast {}
 
 #[CustomCastable]
@@ -28,7 +32,7 @@ var_dump((int)$demo);
 
 ?>
 --EXPECTF--
-string(13) "HasCustomCast"
+string(27) "CustomCasting\HasCustomCast"
 
 Warning: Object of class Demo could not be converted to int in %s on line %d
 int(1)

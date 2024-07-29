@@ -7,6 +7,11 @@ manually added.
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+use CustomCasting\CustomCastable;
+use CustomCasting\HasCustomCast;
+
 #[CustomCastable]
 class Demo implements HasCustomCast {
 	public function __doCast(CastableTarget $t) {
@@ -38,6 +43,6 @@ var_dump((int)$demo3);
 
 ?>
 --EXPECT--
-string(13) "HasCustomCast"
+string(27) "CustomCasting\HasCustomCast"
 int(777)
 int(888)

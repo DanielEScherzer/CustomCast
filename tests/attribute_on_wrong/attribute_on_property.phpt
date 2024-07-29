@@ -4,6 +4,9 @@
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CustomCastable;
+
 class Demo {
 	#[CustomCastable]
 	public $foo;
@@ -11,4 +14,4 @@ class Demo {
 
 ?>
 --EXPECTF--
-Fatal error: Attribute "CustomCastable" cannot target property (allowed targets: class) in %s on line %d
+Fatal error: Attribute "CustomCasting\CustomCastable" cannot target property (allowed targets: class) in %s on line %d

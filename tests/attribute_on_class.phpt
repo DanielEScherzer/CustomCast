@@ -4,6 +4,10 @@ Check that the `CustomCastable` attribute can be added to a class
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+use CustomCasting\CustomCastable;
+
 #[CustomCastable]
 class Demo {
 	public function __doCast(CastableTarget $t) {
@@ -18,4 +22,4 @@ foreach ( $demoRef->getAttributes() as $a ) {
 
 ?>
 --EXPECT--
-string(14) "CustomCastable"
+string(28) "CustomCasting\CustomCastable"

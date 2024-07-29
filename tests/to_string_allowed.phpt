@@ -4,6 +4,10 @@ Check that the `CustomCastable` attribute doesn't conflict with __toString()
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+use CustomCasting\CustomCastable;
+
 #[CustomCastable]
 class Demo {
 	private bool $val;

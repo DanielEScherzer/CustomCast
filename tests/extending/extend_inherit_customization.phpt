@@ -4,6 +4,10 @@ Custom casting on parent classes gets inherited
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CastableTarget;
+use CustomCasting\CustomCastable;
+
 #[CustomCastable]
 class Demo {
 	public function __doCast(CastableTarget $t) {
@@ -33,6 +37,6 @@ var_dump((int)$override);
 
 ?>
 --EXPECTF--
-string(13) "HasCustomCast"
+string(27) "CustomCasting\HasCustomCast"
 int(777)
 int(888)

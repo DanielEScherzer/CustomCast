@@ -4,6 +4,9 @@
 custom_cast
 --FILE--
 <?php
+
+use CustomCasting\CustomCastable;
+
 class Demo {
 	public function foo(
 		#[CustomCastable] $bar
@@ -13,4 +16,4 @@ class Demo {
 
 ?>
 --EXPECTF--
-Fatal error: Attribute "CustomCastable" cannot target parameter (allowed targets: class) in %s on line %d
+Fatal error: Attribute "CustomCasting\CustomCastable" cannot target parameter (allowed targets: class) in %s on line %d
