@@ -183,18 +183,18 @@ static zend_result custom_cast_do_cast(
 static void require_user_class(uint32_t flags) {
 	// Must actually be on a class
 	if (flags & ZEND_ACC_ENUM) {
-		zend_error_noreturn(E_ERROR, "Cannot apply #[CustomCastable] to enum");
+		zend_error_noreturn(E_ERROR, "Cannot apply #[CustomCasting\\CustomCastable] to enum");
 	}
 	if (flags & ZEND_ACC_INTERFACE) {
-		zend_error_noreturn(E_ERROR, "Cannot apply #[CustomCastable] to interface");
+		zend_error_noreturn(E_ERROR, "Cannot apply #[CustomCasting\\CustomCastable] to interface");
 	}
 	if (flags & ZEND_ACC_TRAIT) {
-		zend_error_noreturn(E_ERROR, "Cannot apply #[CustomCastable] to trait");
+		zend_error_noreturn(E_ERROR, "Cannot apply #[CustomCasting\\CustomCastable] to trait");
 	}
 	if (flags & ZEND_ACC_LINKED) {
 		zend_error_noreturn(
 			E_ERROR,
-			"#[CustomCastable] is for user classes, internal classes can set a custom cast handler"
+			"#[CustomCasting\\CustomCastable] is for user classes, internal classes can set a custom cast handler"
 		);
 	}
 

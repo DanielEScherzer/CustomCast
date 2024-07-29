@@ -13,4 +13,4 @@ trait Demo {
 
 ?>
 --EXPECTF--
-Fatal error: Cannot apply #[CustomCastable] to trait in %s on line %d
+Fatal error: Cannot apply #[CustomCasting\CustomCastable] to trait in %s on line %d

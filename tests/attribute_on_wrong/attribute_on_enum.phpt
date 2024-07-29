@@ -13,4 +13,4 @@ enum Demo {
 
 ?>
 --EXPECTF--
-Fatal error: Cannot apply #[CustomCastable] to enum in %s on line %d
+Fatal error: Cannot apply #[CustomCasting\CustomCastable] to enum in %s on line %d
