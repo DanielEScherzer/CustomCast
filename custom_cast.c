@@ -57,23 +57,19 @@ ZEND_METHOD(CustomCasting_CustomCastable, __construct)
 
 static zend_result get_cast_enum_val( int type, zval *param ) {
 	char *name = NULL;
-	size_t len = 0;
 	if (type == _IS_BOOL) {
 		name = "CAST_BOOL";
-		len = sizeof( "CAST_BOOL" ) - 1;
 	} else if (type == IS_LONG) {
 		name = "CAST_LONG";
-		len = sizeof( "CAST_LONG" ) - 1;
 	} else if (type == IS_DOUBLE) {
 		name = "CAST_FLOAT";
-		len = sizeof( "CAST_FLOAT" ) - 1;
 	} else {
 		return FAILURE;
 	}
 	zend_class_constant *c = zend_hash_str_find_ptr(
 		CE_CONSTANTS_TABLE(custom_cast_type_enum_ce),
 		name,
-		len
+		strlen( name )
 	);
 	ZEND_ASSERT(c && "Valid enum case");
 	if (Z_TYPE(c->value) == IS_CONSTANT_AST) {
@@ -126,9 +122,7 @@ static zend_result custom_cast_do_cast(
 		}
 		return FAILURE;
 	}
-	smart_str gotResult = { 0 };
-	php_var_export_ex( &fcallReturn, 0, &gotResult );
-	smart_str_0(&gotResult);
+	char *expectedReturnType = NULL;
 	if (type == _IS_BOOL) {
 		if (EXPECTED(
 			Z_TYPE_INFO(fcallReturn) == IS_TRUE
@@ -136,45 +130,42 @@ static zend_result custom_cast_do_cast(
 		) ) {
 			ZVAL_COPY(writeobj, &fcallReturn);
 			zval_ptr_dtor(&fcallReturn);
-			smart_str_free( &gotResult );
 			return SUCCESS;
 		}
-		zend_error_noreturn(
-			E_ERROR,
-			"Method %s::__doCast() did not return a boolean, got %s",
-			ZSTR_VAL(readobj->ce->name),
-			ZSTR_VAL( gotResult.s )
-		);
+		expectedReturnType = "a boolean";
 	}
 	if (type == IS_LONG) {
 		if (EXPECTED(Z_TYPE_INFO(fcallReturn) == IS_LONG) ) {
 			ZVAL_COPY(writeobj, &fcallReturn);
 			zval_ptr_dtor(&fcallReturn);
-			smart_str_free( &gotResult );
 			return SUCCESS;
 		}
-		zend_error_noreturn(
-			E_ERROR,
-			"Method %s::__doCast() did not return an integer, got %s",
-			ZSTR_VAL(readobj->ce->name),
-			ZSTR_VAL( gotResult.s )
-		);
+		expectedReturnType = "an integer";
 	}
 	if (type == IS_DOUBLE) {
 		if (EXPECTED(Z_TYPE_INFO(fcallReturn) == IS_DOUBLE) ) {
 			ZVAL_COPY(writeobj, &fcallReturn);
 			zval_ptr_dtor(&fcallReturn);
-			smart_str_free( &gotResult );
 			return SUCCESS;
 		}
+		expectedReturnType = "a floating-point number";
+	}
+	if ( expectedReturnType != NULL ) {
+		// There should never be a case where we got here without
+		// expectedReturnType being set, but just in case no harm to check
+		smart_str gotResult = { 0 };
+		php_var_export_ex( &fcallReturn, 0, &gotResult );
+		smart_str_0(&gotResult);
 		zend_error_noreturn(
 			E_ERROR,
-			"Method %s::__doCast() did not return a floating-point number, got %s",
-			ZSTR_VAL(readobj->ce->name),
+			"Method %s::__doCast() did not return %s, got %s",
+			ZSTR_VAL( readobj->ce->name ),
+			expectedReturnType,
 			ZSTR_VAL( gotResult.s )
 		);
+		smart_str_free( &gotResult );
 	}
-	smart_str_free( &gotResult );
+
 	zval_ptr_dtor(&fcallReturn);
 	
 	return FAILURE;
