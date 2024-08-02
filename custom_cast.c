@@ -114,6 +114,17 @@ static zend_result custom_cast_do_cast(
 
 	if (Z_ISUNDEF(fcallReturn) || Z_ISNULL(fcallReturn)) {
 		zval_ptr_dtor(&fcallReturn);
+		// If the developer has thrown an exception then we don't need another
+		// error message about failure. Yes, this is different from
+		// zend_std_cast_object_tostring() handling of __toString(), but
+		// without this there are are warnings shown that the conversion
+		// failed (from zend_operators.c convert_object_to_type()) and for
+		// boolean it seems that the exception cannot be caught and a
+		// recoverable error is triggered (from zend_object_is_true()). So,
+		// even though really this failed, return SUCCESS here
+		if (EG(exception)) {
+			return SUCCESS;
+		}
 		// match zend_std_cast_object_tostring if the developer explicitly
 		// hasn't returned anything for booleans
 		if (type == _IS_BOOL) {
