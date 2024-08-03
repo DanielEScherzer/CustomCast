@@ -109,7 +109,7 @@ static zend_result custom_cast_do_cast(
 		readobj,
 		&fcallReturn,
 		&castParam
-	);	
+	);
 	zval_ptr_dtor(&castParam);
 
 	if (Z_ISUNDEF(fcallReturn) || Z_ISNULL(fcallReturn)) {
@@ -178,7 +178,7 @@ static zend_result custom_cast_do_cast(
 	}
 
 	zval_ptr_dtor(&fcallReturn);
-	
+
 	return FAILURE;
 }
 
@@ -280,7 +280,7 @@ static void ensure_class_has_interface(zend_class_entry *scope) {
 		0
 	);
 	newInterfaceSet[interfaceIdx].lc_name = zend_string_init(
-		"customcasting\\hascustomcast", 
+		"customcasting\\hascustomcast",
 		sizeof("customcasting\\hascustomcast") - 1,
 		0
 	);
@@ -379,7 +379,7 @@ PHP_RINIT_FUNCTION(custom_cast)
 
 /* {{{ PHP_MSHUTDOWN_FUNCTION */
 PHP_MSHUTDOWN_FUNCTION(custom_cast) {
-	
+
 	// Unregister INI
 	UNREGISTER_INI_ENTRIES();
 
