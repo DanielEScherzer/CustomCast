@@ -11,5 +11,7 @@ $a = new CustomCastable();
 var_dump( $a );
 ?>
 --EXPECT--
-object(CustomCasting\CustomCastable)#1 (0) {
+object(CustomCasting\CustomCastable)#1 (1) {
+  ["target":"CustomCasting\CustomCastable":private]=>
+  int(7)
 }

@@ -52,17 +52,48 @@ PHP_INI_END()
 
 ZEND_METHOD(CustomCasting_CustomCastable, __construct)
 {
-	ZEND_PARSE_PARAMETERS_NONE();
+	// Default is all
+	zend_long targetBitMask = 7;
+	ZEND_PARSE_PARAMETERS_START(0, 1)
+		Z_PARAM_OPTIONAL
+		Z_PARAM_LONG(targetBitMask)
+	ZEND_PARSE_PARAMETERS_END();
+
+	if ( targetBitMask <= 0 ) {
+		zend_argument_value_error(
+			1,
+			"must be greater than 0"
+		);
+	} else if ( targetBitMask > 7 ) {
+		zend_argument_value_error(
+			1,
+			"must be at most 7 (CustomCastable::TARGET_ALL)"
+		);
+	}
+
+	// Save the property
+	zend_update_property_long(
+		custom_cast_attrib_ce,
+		Z_OBJ_P(ZEND_THIS),
+		"target",
+		sizeof("target") - 1,
+		targetBitMask
+	);
 }
 
-static zend_result get_cast_enum_val( int type, zval *param ) {
+static zend_result get_cast_enum_val( int type, zval *param, zend_long targetBitMask ) {
+	// Bitmask values here MUST match the CustomCastable::TARGET_* constants
+	const int TARGET_BOOL = 1;
+	const int TARGET_FLOAT = 2;
+	const int TARGET_LONG = 4;
+
 	char *name = NULL;
-	if (type == _IS_BOOL) {
+	if (type == _IS_BOOL && (targetBitMask & TARGET_BOOL)) {
 		name = "CAST_BOOL";
-	} else if (type == IS_LONG) {
-		name = "CAST_LONG";
-	} else if (type == IS_DOUBLE) {
+	} else if (type == IS_DOUBLE && (targetBitMask & TARGET_FLOAT)) {
 		name = "CAST_FLOAT";
+	} else if (type == IS_LONG && (targetBitMask & TARGET_LONG)) {
+		name = "CAST_LONG";
 	} else {
 		return FAILURE;
 	}
@@ -90,16 +121,48 @@ static zend_result custom_cast_do_cast(
 		return zend_std_cast_object_tostring(readobj, writeobj, type);
 	}
 
+	// Make sure to apply the attribute's target value, but only if the
+	// attribute is present
+	zend_class_entry *ce = readobj->ce;
+	zend_attribute *castAttrib = zend_get_attribute_str(
+		ce->attributes,
+		"customcasting\\customcastable",
+		sizeof( "customcasting\\customcastable" ) - 1
+	);
+	zend_long targetBitMask = 7;
+	// Only care if the target bitmask was set, i.e. there was an argument
+	if ( castAttrib != NULL && castAttrib->argc > 0 ) {
+		zval bitmaskZval;
+		zend_result getMaskResult = zend_get_attribute_value(
+			&bitmaskZval,
+			castAttrib,
+			0,
+			ce
+		);
+		if (getMaskResult == FAILURE) {
+			ZEND_ASSERT(EG(exception));
+			return FAILURE;
+		}
+		targetBitMask = Z_LVAL(bitmaskZval);
+		zval_ptr_dtor(&bitmaskZval);
+	}
+
 	zval castParam;
-	zend_result canCast = get_cast_enum_val(type, &castParam);
+	zend_result canCast = get_cast_enum_val(type, &castParam, targetBitMask);
 	if (canCast == FAILURE) {
+		// match zend_std_cast_object_tostring if the reason we are not handling
+		// boolean cast is solely because of the target bit mask
+		if (type == _IS_BOOL) {
+			ZVAL_TRUE(writeobj);
+			return SUCCESS;
+		}
 		return FAILURE;
 	}
 
 	zval fcallReturn;
 
 	zend_function *castFn = zend_hash_str_find_ptr(
-		&( readobj->ce->function_table ),
+		&( ce->function_table ),
 		"__docast",
 		sizeof("__docast") - 1
 	);
