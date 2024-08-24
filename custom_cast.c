@@ -196,49 +196,34 @@ static zend_result custom_cast_do_cast(
 		}
 		return FAILURE;
 	}
+	if (EXPECTED(ZEND_SAME_FAKE_TYPE(type, Z_TYPE_INFO(fcallReturn)))) {
+		ZVAL_COPY(writeobj, &fcallReturn);
+		zval_ptr_dtor(&fcallReturn);
+		return SUCCESS;
+	}
 	char *expectedReturnType = NULL;
 	if (type == _IS_BOOL) {
-		if (EXPECTED(
-			Z_TYPE_INFO(fcallReturn) == IS_TRUE
-			|| Z_TYPE_INFO(fcallReturn) == IS_FALSE
-		) ) {
-			ZVAL_COPY(writeobj, &fcallReturn);
-			zval_ptr_dtor(&fcallReturn);
-			return SUCCESS;
-		}
 		expectedReturnType = "a boolean";
-	}
-	if (type == IS_LONG) {
-		if (EXPECTED(Z_TYPE_INFO(fcallReturn) == IS_LONG) ) {
-			ZVAL_COPY(writeobj, &fcallReturn);
-			zval_ptr_dtor(&fcallReturn);
-			return SUCCESS;
-		}
+	} else if (type == IS_LONG) {
 		expectedReturnType = "an integer";
-	}
-	if (type == IS_DOUBLE) {
-		if (EXPECTED(Z_TYPE_INFO(fcallReturn) == IS_DOUBLE) ) {
-			ZVAL_COPY(writeobj, &fcallReturn);
-			zval_ptr_dtor(&fcallReturn);
-			return SUCCESS;
-		}
+	} else if (type == IS_DOUBLE) {
 		expectedReturnType = "a floating-point number";
+	} else {
+		expectedReturnType = "unknown (internal error)";
 	}
-	if ( expectedReturnType != NULL ) {
-		// There should never be a case where we got here without
-		// expectedReturnType being set, but just in case no harm to check
-		smart_str gotResult = { 0 };
-		php_var_export_ex( &fcallReturn, 0, &gotResult );
-		smart_str_0(&gotResult);
-		zend_error_noreturn(
-			E_ERROR,
-			"Method %s::__doCast() did not return %s, got %s",
-			ZSTR_VAL( readobj->ce->name ),
-			expectedReturnType,
-			ZSTR_VAL( gotResult.s )
-		);
-		smart_str_free( &gotResult );
-	}
+	// There should never be a case where we got here without
+	// expectedReturnType being set, but just in case no harm to check
+	smart_str gotResult = { 0 };
+	php_var_export_ex( &fcallReturn, 0, &gotResult );
+	smart_str_0(&gotResult);
+	zend_error_noreturn(
+		E_ERROR,
+		"Method %s::__doCast() did not return %s, got %s",
+		ZSTR_VAL( readobj->ce->name ),
+		expectedReturnType,
+		ZSTR_VAL( gotResult.s )
+	);
+	smart_str_free( &gotResult );
 
 	zval_ptr_dtor(&fcallReturn);
 
