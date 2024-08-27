@@ -111,6 +111,35 @@ static zend_result get_cast_enum_val( int type, zval *param, zend_long targetBit
 	return SUCCESS;
 }
 
+// Make sure to apply the attribute's target value, but only if the attribute
+// is present; if not default to targeting all casts (7)
+// Returns 0 if there was an error
+static zend_long custom_cast_load_target_bitmask( zend_class_entry *scope ) {
+	zend_attribute *castAttrib = zend_get_attribute_str(
+		scope->attributes,
+		"customcasting\\customcastable",
+		strlen( "customcasting\\customcastable" )
+	);
+	// Only care if the target bitmask was set, i.e. there was an argument
+	if ( castAttrib == NULL || castAttrib->argc == 0 ) {
+		return 7;
+	}
+	zval bitmaskZval;
+	zend_result getMaskResult = zend_get_attribute_value(
+		&bitmaskZval,
+		castAttrib,
+		0,
+		scope
+	);
+	if (getMaskResult == FAILURE) {
+		ZEND_ASSERT(EG(exception));
+		return 0;
+	}
+	zend_long result = Z_LVAL(bitmaskZval);
+	zval_ptr_dtor(&bitmaskZval);
+	return result;
+}
+
 static zend_result custom_cast_do_cast(
 	zend_object *readobj,
 	zval *writeobj,
@@ -121,30 +150,12 @@ static zend_result custom_cast_do_cast(
 		return zend_std_cast_object_tostring(readobj, writeobj, type);
 	}
 
-	// Make sure to apply the attribute's target value, but only if the
-	// attribute is present
+	// Load target bitmask
 	zend_class_entry *ce = readobj->ce;
-	zend_attribute *castAttrib = zend_get_attribute_str(
-		ce->attributes,
-		"customcasting\\customcastable",
-		strlen( "customcasting\\customcastable" )
-	);
-	zend_long targetBitMask = 7;
-	// Only care if the target bitmask was set, i.e. there was an argument
-	if ( castAttrib != NULL && castAttrib->argc > 0 ) {
-		zval bitmaskZval;
-		zend_result getMaskResult = zend_get_attribute_value(
-			&bitmaskZval,
-			castAttrib,
-			0,
-			ce
-		);
-		if (getMaskResult == FAILURE) {
-			ZEND_ASSERT(EG(exception));
-			return FAILURE;
-		}
-		targetBitMask = Z_LVAL(bitmaskZval);
-		zval_ptr_dtor(&bitmaskZval);
+	zend_long targetBitMask = custom_cast_load_target_bitmask( ce );
+	if (targetBitMask == 0) {
+		ZEND_ASSERT(EG(exception));
+		return FAILURE;
 	}
 
 	zval castParam;
