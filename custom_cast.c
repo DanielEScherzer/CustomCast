@@ -76,7 +76,7 @@ ZEND_METHOD(CustomCasting_CustomCastable, __construct)
 		custom_cast_attrib_ce,
 		Z_OBJ_P(ZEND_THIS),
 		"target",
-		sizeof("target") - 1,
+		strlen( "target" ),
 		targetBitMask
 	);
 }
@@ -127,7 +127,7 @@ static zend_result custom_cast_do_cast(
 	zend_attribute *castAttrib = zend_get_attribute_str(
 		ce->attributes,
 		"customcasting\\customcastable",
-		sizeof( "customcasting\\customcastable" ) - 1
+		strlen( "customcasting\\customcastable" )
 	);
 	zend_long targetBitMask = 7;
 	// Only care if the target bitmask was set, i.e. there was an argument
@@ -164,7 +164,7 @@ static zend_result custom_cast_do_cast(
 	zend_function *castFn = zend_hash_str_find_ptr(
 		&( ce->function_table ),
 		"__docast",
-		sizeof("__docast") - 1
+		strlen( "__docast" )
 	);
 
 	zend_call_known_instance_method_with_1_params(
@@ -324,12 +324,12 @@ static void ensure_class_has_interface(zend_class_entry *scope) {
 	);
 	newInterfaceSet[interfaceIdx].name = zend_string_init(
 		"CustomCasting\\HasCustomCast",
-		sizeof("CustomCasting\\HasCustomCast") - 1,
+		strlen( "CustomCasting\\HasCustomCast" ),
 		0
 	);
 	newInterfaceSet[interfaceIdx].lc_name = zend_string_init(
 		"customcasting\\hascustomcast",
-		sizeof("customcasting\\hascustomcast") - 1,
+		strlen( "customcasting\\hascustomcast" ),
 		0
 	);
 	scope->interface_names = newInterfaceSet;
@@ -346,7 +346,7 @@ static void validate_custom_castable(
 static void setup_CustomCastable_as_attribute(zend_class_entry *class_entry) {
 	// Generation script doesn't yet handle attributes, so we need to manually
 	// register that this is an attribute
-	zend_string *attribute_name_Attribute_class_CustomCastable_0 = zend_string_init_interned("Attribute", sizeof("Attribute") - 1, 1);
+	zend_string *attribute_name_Attribute_class_CustomCastable_0 = zend_string_init_interned("Attribute", strlen( "Attribute" ), 1);
 	zend_attribute *attribute_Attribute_class_CustomCastable_0 = zend_add_class_attribute(class_entry, attribute_name_Attribute_class_CustomCastable_0, 1);
 	zend_string_release(attribute_name_Attribute_class_CustomCastable_0);
 	zval attribute_Attribute_class_CustomCastable_0_arg0;
@@ -359,7 +359,7 @@ static void observe_class_linked(zend_class_entry *ce, zend_string *name) {
 	zend_function *fn = zend_hash_str_find_ptr(
 		&ce->function_table,
 		"__docast",
-		sizeof( "__docast" ) - 1
+		strlen( "__docast" )
 	);
 	// Most classes don't have the method
 	if (EXPECTED(fn == NULL)) {
@@ -373,7 +373,7 @@ static void observe_class_linked(zend_class_entry *ce, zend_string *name) {
 		zval *attribVal = zend_hash_str_find(
 			ce->attributes,
 			"customcastable",
-			sizeof( "customcastable" ) - 1
+			strlen( "customcastable" )
 		);
 		if (attribVal != NULL) {
 			return;
