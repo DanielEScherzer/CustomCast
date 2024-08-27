@@ -216,7 +216,8 @@ static zend_result custom_cast_do_cast(
 	smart_str gotResult = { 0 };
 	php_var_export_ex( &fcallReturn, 0, &gotResult );
 	smart_str_0(&gotResult);
-	zend_error_noreturn(
+	php_error_docref(
+		NULL,
 		E_ERROR,
 		"Method %s::__doCast() did not return %s, got %s",
 		ZSTR_VAL( readobj->ce->name ),

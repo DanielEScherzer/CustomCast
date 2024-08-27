@@ -22,4 +22,4 @@ var_dump( (bool)$d );
 
 ?>
 --EXPECTF--
-Fatal error: Method Demo::__doCast() did not return a boolean, got 5 in %s on line %d
+Fatal error: main(): Method Demo::__doCast() did not return a boolean, got 5 in %s on line %d

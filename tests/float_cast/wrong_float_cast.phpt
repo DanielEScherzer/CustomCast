@@ -22,4 +22,4 @@ var_dump( (float)$d );
 
 ?>
 --EXPECTF--
-Fatal error: Method Demo::__doCast() did not return a floating-point number, got true in %s on line %d
+Fatal error: main(): Method Demo::__doCast() did not return a floating-point number, got true in %s on line %d
