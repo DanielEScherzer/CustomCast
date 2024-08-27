@@ -50,6 +50,12 @@ STD_PHP_INI_BOOLEAN(
 )
 PHP_INI_END()
 
+/**
+ * Implementation of CustomCastable::__construct() - takes a single optional
+ * integer in the range [1,7] which is a bitmask of the constants
+ * CustomCastable::TARGET_BOOL, ::TARGET_FLOAT, and ::TARGET_LONG. The default
+ * is equivalent to ::TARGET_ALL
+ */
 ZEND_METHOD(CustomCasting_CustomCastable, __construct)
 {
 	// Default is all
@@ -81,6 +87,14 @@ ZEND_METHOD(CustomCasting_CustomCastable, __construct)
 	);
 }
 
+/**
+ * Given a type to cast the object to, try and load the corresponding enum
+ * value into `param`, if the type is one of the types the extension supports
+ * *and* the class includes the type's bit flag in the target bit mask passed.
+ *
+ * Returns SUCCESS if the cast should be performed, which indicates a value was
+ * added into `param`.
+ */
 static zend_result get_cast_enum_val( int type, zval *param, zend_long targetBitMask ) {
 	// Bitmask values here MUST match the CustomCastable::TARGET_* constants
 	const int TARGET_BOOL = 1;
@@ -111,9 +125,13 @@ static zend_result get_cast_enum_val( int type, zval *param, zend_long targetBit
 	return SUCCESS;
 }
 
-// Make sure to apply the attribute's target value, but only if the attribute
-// is present; if not default to targeting all casts (7)
-// Returns 0 if there was an error
+/**
+ * For a given class entry, if it has the CustomCastable attribute and that
+ * attribute has an argument (representing the bit mask of the target types),
+ * return the argument's value. Returns 7 if there is no attribute (e.g. when
+ * using the observer system) for TARGET_ALL, and 0 if there was a problem
+ * loading the value
+ */
 static zend_long custom_cast_load_target_bitmask( zend_class_entry *scope ) {
 	zend_attribute *castAttrib = zend_get_attribute_str(
 		scope->attributes,
@@ -220,10 +238,9 @@ static zend_result custom_cast_do_cast(
 	} else if (type == IS_DOUBLE) {
 		expectedReturnType = "a floating-point number";
 	} else {
+		// We should never get here, but if we do don't break the C code
 		expectedReturnType = "unknown (internal error)";
 	}
-	// There should never be a case where we got here without
-	// expectedReturnType being set, but just in case no harm to check
 	smart_str gotResult = { 0 };
 	php_var_export_ex( &fcallReturn, 0, &gotResult );
 	smart_str_0(&gotResult);
@@ -242,6 +259,9 @@ static zend_result custom_cast_do_cast(
 	return FAILURE;
 }
 
+/**
+ * Ensure that the flags for a class entry correspond to a userland class
+ */
 static void require_user_class(uint32_t flags) {
 	// Must actually be on a class
 	if (flags & ZEND_ACC_ENUM) {
@@ -262,7 +282,10 @@ static void require_user_class(uint32_t flags) {
 
 }
 
-// RECURSIVE handler for checking based on parent classes too
+/**
+ * Recursive handler to check if a class implements the custom casting
+ * interface, either directly or via inheritance
+ */
 static bool check_class_has_interface(zend_class_entry *scope) {
 	// Might be *linked* (so already have class entries) but not *resolved*,
 	// since that waits until the inherited parent class is resolved
