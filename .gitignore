@@ -39,3 +39,8 @@ tests/**/*.sh
 tests/**/*.db
 tests/**/*.mem
 tmp-php.ini
+
+# Get generated automatically
+config.h.in~
+configure~
+custom_cast.dep
