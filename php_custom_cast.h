@@ -10,7 +10,7 @@ extern zend_module_entry custom_cast_module_entry;
 
 // Support for using the observer system
 ZEND_BEGIN_MODULE_GLOBALS(custom_cast)
-    bool use_observer;
+	bool use_observer;
 ZEND_END_MODULE_GLOBALS(custom_cast)
 
 ZEND_DECLARE_MODULE_GLOBALS(custom_cast)

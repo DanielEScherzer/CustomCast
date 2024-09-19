@@ -13,7 +13,7 @@ use CustomCasting\CustomCastable;
 
 #[CustomCastable]
 class UnusedParam {
-    public function __doCast(CastableTarget $t) {
+	public function __doCast(CastableTarget $t) {
 	}
 
 }

@@ -10,7 +10,7 @@ use CustomCasting\CustomCastable;
 
 #[CustomCastable]
 class Demo {
-    public function __doCast(CastableTarget $t) {
+	public function __doCast(CastableTarget $t) {
 		throw new RuntimeException(
 			"Cannot convert to " . $t->name
 		);

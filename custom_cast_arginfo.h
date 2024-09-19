@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: bc6ece1b8783d2a7673d50c6fd0f28a0944c96c5 */
+ * Stub hash: d0bbefe6e1238490b3e78fffe7a9ac59215bc747 */
 
 ZEND_BEGIN_ARG_INFO_EX(arginfo_class_CustomCasting_HasCustomCast___doCast, 0, 0, 1)
 	ZEND_ARG_OBJ_INFO(0, t, CustomCasting\\CastableTarget, 0)
