@@ -4,6 +4,11 @@
 # include "config.h"
 #endif
 
+// TODO @cvalue for stubs
+// TODO just implementing interface, class_entry.interface_gets_implemented
+// TODO test with settype()
+// TODO use zend_enum_get_case_cstr() if possible
+
 #include "php.h"
 #include "ext/standard/info.h"
 #include "ext/standard/php_var.h"
@@ -273,6 +278,7 @@ static void require_user_class(uint32_t flags) {
 	if (flags & ZEND_ACC_TRAIT) {
 		zend_error_noreturn(E_ERROR, "Cannot apply #[CustomCasting\\CustomCastable] to trait");
 	}
+	// Use ce->type != ZEND_INTERNAL_CLASS
 	if (flags & ZEND_ACC_LINKED) {
 		zend_error_noreturn(
 			E_ERROR,
@@ -325,6 +331,8 @@ static bool check_class_has_interface(zend_class_entry *scope) {
 		// Invalid class to extend? Leave that up to normal PHP to deal with
 		return false;
 	}
+	// TODO tail call goto like zend_ast_destroy()?
+	// Or maybe use instanceof_function() / match zend_inheritance.c unlinked_instanceof()
 	return check_class_has_interface(parent);
 }
 
