@@ -267,25 +267,22 @@ static zend_result custom_cast_do_cast(
 /**
  * Ensure that the flags for a class entry correspond to a userland class
  */
-static void require_user_class(uint32_t flags) {
+static const char* require_user_class(uint32_t flags) {
 	// Must actually be on a class
 	if (flags & ZEND_ACC_ENUM) {
-		zend_error_noreturn(E_ERROR, "Cannot apply #[CustomCasting\\CustomCastable] to enum");
+		return "Cannot apply #[CustomCasting\\CustomCastable] to enum";
 	}
 	if (flags & ZEND_ACC_INTERFACE) {
-		zend_error_noreturn(E_ERROR, "Cannot apply #[CustomCasting\\CustomCastable] to interface");
+		return "Cannot apply #[CustomCasting\\CustomCastable] to interface";
 	}
 	if (flags & ZEND_ACC_TRAIT) {
-		zend_error_noreturn(E_ERROR, "Cannot apply #[CustomCasting\\CustomCastable] to trait");
+		return "Cannot apply #[CustomCasting\\CustomCastable] to trait";
 	}
 	// Use ce->type != ZEND_INTERNAL_CLASS
 	if (flags & ZEND_ACC_LINKED) {
-		zend_error_noreturn(
-			E_ERROR,
-			"#[CustomCasting\\CustomCastable] is for user classes, internal classes can set a custom cast handler"
-		);
+		return "#[CustomCasting\\CustomCastable] is for user classes, internal classes can set a custom cast handler";
 	}
-
+	return NULL;
 }
 
 /**
@@ -381,7 +378,10 @@ static void ensure_class_has_interface(zend_class_entry *scope) {
 static void validate_custom_castable(
 		zend_attribute *attr, uint32_t target, zend_class_entry *scope)
 {
-	require_user_class(scope->ce_flags);
+	const char *error = require_user_class(scope->ce_flags);
+	if (error != NULL) {
+		zend_error_noreturn(E_ERROR, error);
+	}
 	ensure_class_has_interface(scope);
 	scope->default_object_handlers = &custom_cast_obj_handlers;
 }
