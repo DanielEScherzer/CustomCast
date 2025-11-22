@@ -375,15 +375,27 @@ static void ensure_class_has_interface(zend_class_entry *scope) {
 	scope->interface_names = newInterfaceSet;
 }
 
+#if PHP_VERSION_ID < 80500
 static void validate_custom_castable(
 		zend_attribute *attr, uint32_t target, zend_class_entry *scope)
+#else
+static zend_string *validate_custom_castable(
+		zend_attribute *attr, uint32_t target, zend_class_entry *scope)
+#endif
 {
 	const char *error = require_user_class(scope->ce_flags);
 	if (error != NULL) {
+#if PHP_VERSION_ID < 80500
 		zend_error_noreturn(E_ERROR, error);
+#else
+		return zend_string_init(error, strlen(error), 0);
+#endif
 	}
 	ensure_class_has_interface(scope);
 	scope->default_object_handlers = &custom_cast_obj_handlers;
+#if PHP_VERSION_ID >= 80500
+		return NULL;
+#endif
 }
 
 static void setup_CustomCastable_as_attribute(zend_class_entry *class_entry) {
